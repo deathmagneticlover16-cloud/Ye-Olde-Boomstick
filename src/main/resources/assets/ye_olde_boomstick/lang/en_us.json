@@ -1,5 +1,7 @@
 {
   "item.ye_olde_boomstick.musket": "Musket",
   "item.ye_olde_boomstick.musket_ball": "Musket Ball",
-  "subtitles.ye_olde_boomstick.musket_fire": "Musket fires"
+  "subtitles.ye_olde_boomstick.musket_fire": "Musket fires",
+  "subtitles.ye_olde_boomstick.musket_reload": "Musket reloads",
+  "subtitles.ye_olde_boomstick.musket_armed": "Musket is armed"
 }

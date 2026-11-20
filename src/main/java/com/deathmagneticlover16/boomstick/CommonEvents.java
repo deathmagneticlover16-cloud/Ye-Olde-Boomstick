@@ -7,8 +7,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 @Mod.EventBusSubscriber(modid = BoomstickMod.MOD_ID)
 public final class CommonEvents {
+    private static final Set<Mob> CONFIGURED_RECRUITS = Collections.newSetFromMap(new WeakHashMap<>());
+
     private CommonEvents() {}
 
     @SubscribeEvent
@@ -16,9 +22,8 @@ public final class CommonEvents {
         if (event.getLevel().isClientSide || !(event.getEntity() instanceof Mob mob)) return;
         ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
         if (id != null && id.getNamespace().equals("recruits") && id.getPath().contains("crossbow")
-                && !mob.getPersistentData().getBoolean("YeOldeBoomstickGoalAdded")) {
+                && CONFIGURED_RECRUITS.add(mob)) {
             mob.goalSelector.addGoal(2, new MusketRecruitGoal(mob));
-            mob.getPersistentData().putBoolean("YeOldeBoomstickGoalAdded", true);
         }
     }
 }

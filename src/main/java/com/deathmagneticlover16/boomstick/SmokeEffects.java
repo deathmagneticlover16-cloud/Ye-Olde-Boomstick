@@ -1,6 +1,5 @@
 package com.deathmagneticlover16.boomstick;
 
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
@@ -21,14 +20,19 @@ final class SmokeEffects {
         while (!shots.isEmpty() && shots.peekFirst().time < now - 200L) shots.removeFirst();
         shots.addLast(new Shot(now, muzzle));
         long nearbyShots = shots.stream().filter(shot -> shot.position.distanceToSqr(muzzle) <= 1024.0D).count();
-        int smokeCount = Math.min(80, 10 + (int) nearbyShots * 3);
+        int smokeCount = Math.min(52, 8 + (int) nearbyShots * 2);
 
-        level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, muzzle.x, muzzle.y, muzzle.z,
-                smokeCount, 0.28D, 0.20D, 0.28D, 0.018D);
-        level.sendParticles(ParticleTypes.POOF, muzzle.x, muzzle.y, muzzle.z,
-                Math.min(20, 5 + (int) nearbyShots), 0.15D, 0.12D, 0.15D, 0.03D);
-        level.sendParticles(ParticleTypes.ELECTRIC_SPARK, muzzle.x, muzzle.y, muzzle.z,
-                3, 0.06D, 0.06D, 0.06D, 0.10D);
+        level.sendParticles(BoomstickMod.MUSKET_SMOKE.get(), muzzle.x, muzzle.y, muzzle.z,
+                smokeCount, 0.20D, 0.13D, 0.20D, 0.025D);
+
+        for (int i = 0; i < 5; i++) {
+            Vec3 sparkVelocity = direction.scale(0.22D + level.random.nextDouble() * 0.18D)
+                    .add((level.random.nextDouble() - 0.5D) * 0.12D,
+                            (level.random.nextDouble() - 0.25D) * 0.11D,
+                            (level.random.nextDouble() - 0.5D) * 0.12D);
+            level.sendParticles(BoomstickMod.MUSKET_SPARK.get(), muzzle.x, muzzle.y, muzzle.z,
+                    0, sparkVelocity.x, sparkVelocity.y, sparkVelocity.z, 1.0D);
+        }
     }
 
     private record Shot(long time, Vec3 position) {}

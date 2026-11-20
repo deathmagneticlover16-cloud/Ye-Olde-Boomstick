@@ -25,12 +25,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public final class MusketItem extends Item {
-    private static final String LOADED = "Loaded";
+    private static final String ARMED = "Armed";
+    private static final String LEGACY_LOADED = "Loaded";
     private static final String RELOADING = "Reloading";
     private static final String RELOAD_AT = "ReloadAt";
     private static final String FIRING = "Firing";
     private static final String FIRE_AT = "FireAt";
     private static final int IGNITION_TICKS = 8;
+    private static final int RELOAD_DURATION_TICKS = 300;
     private final Multimap<Attribute, AttributeModifier> attributes;
 
     public MusketItem(Properties properties) {
@@ -47,7 +49,7 @@ public final class MusketItem extends Item {
         player.startUsingItem(hand);
         if (!level.isClientSide) {
             stack.getOrCreateTag().putBoolean("Shouldered", false);
-            if (isLoaded(stack)) {
+            if (isArmed(stack)) {
                 if (!stack.getOrCreateTag().getBoolean(FIRING)) {
                     stack.getOrCreateTag().putBoolean(FIRING, true);
                     stack.getOrCreateTag().putLong(FIRE_AT, level.getGameTime() + IGNITION_TICKS);
@@ -56,7 +58,8 @@ public final class MusketItem extends Item {
             } else {
                 if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
                     stack.getOrCreateTag().putBoolean(RELOADING, true);
-                    stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + 300L + level.random.nextInt(101));
+                    stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + RELOAD_DURATION_TICKS);
+                    playActionSound((ServerLevel) level, player, BoomstickMod.MUSKET_RELOAD.get(), 1.1F);
                 }
             }
         }
@@ -68,10 +71,11 @@ public final class MusketItem extends Item {
         if (level.isClientSide) return;
         if (stack.getOrCreateTag().getBoolean(FIRING)) {
             tryFire((ServerLevel) level, user, stack);
-        } else if (!isLoaded(stack) && stack.getOrCreateTag().getBoolean(RELOADING)
+        } else if (!isArmed(stack) && stack.getOrCreateTag().getBoolean(RELOADING)
                 && level.getGameTime() >= stack.getOrCreateTag().getLong(RELOAD_AT)) {
-            setLoaded(stack, true);
+            setArmed(stack, true);
             clearReload(stack);
+            playActionSound((ServerLevel) level, user, BoomstickMod.MUSKET_ARMED.get(), 1.0F);
             user.stopUsingItem();
         }
     }
@@ -95,7 +99,7 @@ public final class MusketItem extends Item {
         if (level.getGameTime() < stack.getOrCreateTag().getLong(FIRE_AT)) return;
         stack.getOrCreateTag().putBoolean(FIRING, false);
         stack.getOrCreateTag().remove(FIRE_AT);
-        setLoaded(stack, false);
+        setArmed(stack, false);
         fire(level, user);
         if (user instanceof ServerPlayer player) player.awardStat(Stats.ITEM_USED.get(this));
         if (user.isUsingItem() && user.getUseItem() == stack) user.stopUsingItem();
@@ -114,22 +118,31 @@ public final class MusketItem extends Item {
         return slot == EquipmentSlot.MAINHAND ? attributes : super.getDefaultAttributeModifiers(slot);
     }
 
-    public static boolean isLoaded(ItemStack stack) {
-        return !stack.hasTag() || !stack.getTag().contains(LOADED) || stack.getTag().getBoolean(LOADED);
+    public static boolean isArmed(ItemStack stack) {
+        if (!stack.hasTag()) return true;
+        if (stack.getTag().contains(ARMED)) return stack.getTag().getBoolean(ARMED);
+        if (stack.getTag().contains(LEGACY_LOADED)) return stack.getTag().getBoolean(LEGACY_LOADED);
+        return true;
     }
 
-    public static void setLoaded(ItemStack stack, boolean loaded) {
-        stack.getOrCreateTag().putBoolean(LOADED, loaded);
+    public static void setArmed(ItemStack stack, boolean armed) {
+        stack.getOrCreateTag().putBoolean(ARMED, armed);
+        stack.getOrCreateTag().remove(LEGACY_LOADED);
     }
 
     public static void fire(ServerLevel level, LivingEntity shooter) {
-        MusketBall ball = new MusketBall(level, shooter);
         Vec3 look = shooter.getLookAngle();
-        ball.setPos(shooter.getEyePosition().add(look.scale(0.8D)));
-        ball.shoot(look.x, look.y, look.z, 4.0F, 8.0F);
+        fire(level, shooter, look);
+    }
+
+    public static void fire(ServerLevel level, LivingEntity shooter, Vec3 direction) {
+        MusketBall ball = new MusketBall(level, shooter);
+        Vec3 normalizedDirection = direction.normalize();
+        ball.setPos(shooter.getEyePosition().add(normalizedDirection.scale(0.8D)));
+        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 4.0F, 3.0F);
         level.addFreshEntity(ball);
         level.gameEvent(shooter, GameEvent.PROJECTILE_SHOOT, shooter.position());
-        SmokeEffects.spawn(level, shooter, look);
+        SmokeEffects.spawn(level, shooter, normalizedDirection);
     }
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {
@@ -141,5 +154,9 @@ public final class MusketItem extends Item {
             listener.connection.send(new ClientboundSoundPacket(Holder.direct(sound), SoundSource.PLAYERS,
                     shooter.getX(), shooter.getY(), shooter.getZ(), volume, 1.0F, seed));
         }
+    }
+
+    public static void playActionSound(ServerLevel level, LivingEntity source, SoundEvent sound, float volume) {
+        level.playSound(null, source.getX(), source.getY(), source.getZ(), sound, SoundSource.PLAYERS, volume, 1.0F);
     }
 }

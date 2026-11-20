@@ -6,5 +6,13 @@
   "musket_fire_distant": {
     "subtitle": "subtitles.ye_olde_boomstick.musket_fire",
     "sounds": [{"name": "ye_olde_boomstick:gunshot_distant_1", "stream": true}]
+  },
+  "musket_reload": {
+    "subtitle": "subtitles.ye_olde_boomstick.musket_reload",
+    "sounds": [{"name": "ye_olde_boomstick:musket_reload", "stream": true}]
+  },
+  "musket_armed": {
+    "subtitle": "subtitles.ye_olde_boomstick.musket_armed",
+    "sounds": [{"name": "ye_olde_boomstick:musket_armed"}]
   }
 }
