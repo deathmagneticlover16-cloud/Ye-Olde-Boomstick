@@ -31,6 +31,10 @@ public final class ClientEvents {
                     (stack, level, entity, seed) -> MusketItem.isArmed(stack) ? 1.0F : 0.0F);
             ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("reloading"),
                     (stack, level, entity, seed) -> MusketItem.isReloading(stack) ? 1.0F : 0.0F);
+            ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("aiming"),
+                    (stack, level, entity, seed) -> entity != null && MusketItem.isArmed(stack)
+                            && !MusketItem.isReloading(stack)
+                            && !(stack.hasTag() && stack.getTag().getBoolean("Shouldered")) ? 1.0F : 0.0F);
             ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("shouldered"),
                     (stack, level, entity, seed) -> stack.hasTag() && stack.getTag().getBoolean("Shouldered") ? 1.0F : 0.0F);
         });
