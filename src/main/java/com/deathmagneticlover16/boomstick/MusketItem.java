@@ -59,7 +59,7 @@ public final class MusketItem extends Item {
                 if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
                     stack.getOrCreateTag().putBoolean(RELOADING, true);
                     stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + RELOAD_DURATION_TICKS);
-                    playActionSound((ServerLevel) level, player, BoomstickMod.MUSKET_RELOAD.get(), 1.1F);
+                    BoomstickNetwork.startReloadSound(player);
                 }
             }
         }
@@ -75,8 +75,8 @@ public final class MusketItem extends Item {
                 && level.getGameTime() >= stack.getOrCreateTag().getLong(RELOAD_AT)) {
             setArmed(stack, true);
             clearReload(stack);
+            BoomstickNetwork.stopReloadSound(user);
             playActionSound((ServerLevel) level, user, BoomstickMod.MUSKET_ARMED.get(), 1.0F);
-            user.stopUsingItem();
         }
     }
 
@@ -84,14 +84,20 @@ public final class MusketItem extends Item {
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (!level.isClientSide && stack.getOrCreateTag().getBoolean(RELOADING)) {
             clearReload(stack);
+            BoomstickNetwork.stopReloadSound(entity);
         }
     }
 
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, level, entity, slot, selected);
-        if (!level.isClientSide && entity instanceof LivingEntity living && stack.getOrCreateTag().getBoolean(FIRING)) {
-            tryFire((ServerLevel) level, living, stack);
+        if (!level.isClientSide && entity instanceof LivingEntity living) {
+            if (stack.getOrCreateTag().getBoolean(FIRING)) tryFire((ServerLevel) level, living, stack);
+            if (stack.getOrCreateTag().getBoolean(RELOADING)
+                    && (!living.isUsingItem() || living.getUseItem() != stack)) {
+                clearReload(stack);
+                BoomstickNetwork.stopReloadSound(living);
+            }
         }
     }
 
@@ -102,7 +108,6 @@ public final class MusketItem extends Item {
         setArmed(stack, false);
         fire(level, user);
         if (user instanceof ServerPlayer player) player.awardStat(Stats.ITEM_USED.get(this));
-        if (user.isUsingItem() && user.getUseItem() == stack) user.stopUsingItem();
     }
 
     private static void clearReload(ItemStack stack) {
@@ -147,12 +152,15 @@ public final class MusketItem extends Item {
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {
         long seed = level.random.nextLong();
+        float closePitch = 0.95F + level.random.nextFloat() * 0.10F;
+        float distantPitch = 0.875F + level.random.nextFloat() * 0.25F;
         for (ServerPlayer listener : level.players()) {
             double distance = listener.distanceTo(shooter);
             SoundEvent sound = distance >= 40.0D ? BoomstickMod.MUSKET_FIRE_DISTANT.get() : BoomstickMod.MUSKET_FIRE_CLOSE.get();
             float volume = distance >= 40.0D ? 8.0F : 4.0F;
+            float pitch = distance >= 40.0D ? distantPitch : closePitch;
             listener.connection.send(new ClientboundSoundPacket(Holder.direct(sound), SoundSource.PLAYERS,
-                    shooter.getX(), shooter.getY(), shooter.getZ(), volume, 1.0F, seed));
+                    shooter.getX(), shooter.getY(), shooter.getZ(), volume, pitch, seed));
         }
     }
 

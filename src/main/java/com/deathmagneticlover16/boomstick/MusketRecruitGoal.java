@@ -48,7 +48,7 @@ final class MusketRecruitGoal extends Goal {
         if (!MusketItem.isArmed(musket)) {
             if (hasTarget && distanceSquared <= 4.0D) {
                 markActive(musket);
-                musket.getOrCreateTag().remove("RecruitReloadAt");
+                cancelReload(musket);
                 if (bayonetCooldown == 0) {
                     target.hurt(recruit.damageSources().mobAttack(recruit), 6.0F);
                     bayonetCooldown = 20;
@@ -57,12 +57,13 @@ final class MusketRecruitGoal extends Goal {
                 markActive(musket);
                 MusketItem.setArmed(musket, true);
                 musket.getOrCreateTag().remove("RecruitReloadAt");
+                BoomstickNetwork.stopReloadSound(recruit);
                 MusketItem.playActionSound((ServerLevel) recruit.level(), recruit, BoomstickMod.MUSKET_ARMED.get(), 1.0F);
             } else markActive(musket);
             return;
         }
 
-        musket.getOrCreateTag().remove("RecruitReloadAt");
+        cancelReload(musket);
         if (!hasTarget && strategicAim == null) {
             markIdle(musket);
             actionTicks = 0;
@@ -101,9 +102,21 @@ final class MusketRecruitGoal extends Goal {
     private long reloadDeadline(ItemStack musket) {
         if (!musket.getOrCreateTag().contains("RecruitReloadAt")) {
             musket.getOrCreateTag().putLong("RecruitReloadAt", recruit.level().getGameTime() + 300L);
-            MusketItem.playActionSound((ServerLevel) recruit.level(), recruit, BoomstickMod.MUSKET_RELOAD.get(), 1.1F);
+            BoomstickNetwork.startReloadSound(recruit);
         }
         return musket.getOrCreateTag().getLong("RecruitReloadAt");
+    }
+
+    @Override
+    public void stop() {
+        cancelReload(recruit.getMainHandItem());
+        actionTicks = 0;
+    }
+
+    private void cancelReload(ItemStack musket) {
+        if (!musket.getOrCreateTag().contains("RecruitReloadAt")) return;
+        musket.getOrCreateTag().remove("RecruitReloadAt");
+        BoomstickNetwork.stopReloadSound(recruit);
     }
 
     private Vec3 strategicAimPosition() {
