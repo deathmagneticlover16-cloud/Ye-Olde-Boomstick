@@ -3,7 +3,9 @@ package com.deathmagneticlover16.boomstick;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.Holder;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -20,9 +22,13 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public final class MusketItem extends Item {
     private static final String ARMED = "Armed";
@@ -46,21 +52,14 @@ public final class MusketItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, net.minecraft.world.entity.player.Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (isArmed(stack)) return InteractionResultHolder.pass(stack);
         player.startUsingItem(hand);
         if (!level.isClientSide) {
             stack.getOrCreateTag().putBoolean("Shouldered", false);
-            if (isArmed(stack)) {
-                if (!stack.getOrCreateTag().getBoolean(FIRING)) {
-                    stack.getOrCreateTag().putBoolean(FIRING, true);
-                    stack.getOrCreateTag().putLong(FIRE_AT, level.getGameTime() + IGNITION_TICKS);
-                    playReport((ServerLevel) level, player);
-                }
-            } else {
-                if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
-                    stack.getOrCreateTag().putBoolean(RELOADING, true);
-                    stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + RELOAD_DURATION_TICKS);
-                    BoomstickNetwork.startReloadSound(player);
-                }
+            if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
+                stack.getOrCreateTag().putBoolean(RELOADING, true);
+                stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + RELOAD_DURATION_TICKS);
+                BoomstickNetwork.startReloadSound(player);
             }
         }
         return InteractionResultHolder.consume(stack);
@@ -110,13 +109,31 @@ public final class MusketItem extends Item {
         if (user instanceof ServerPlayer player) player.awardStat(Stats.ITEM_USED.get(this));
     }
 
+    public static void beginFiring(ServerPlayer player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!stack.is(BoomstickMod.MUSKET.get()) || !isArmed(stack)
+                || stack.getOrCreateTag().getBoolean(FIRING)
+                || stack.getOrCreateTag().getBoolean(RELOADING)) return;
+        stack.getOrCreateTag().putBoolean("Shouldered", false);
+        stack.getOrCreateTag().putBoolean(FIRING, true);
+        stack.getOrCreateTag().putLong(FIRE_AT, player.level().getGameTime() + IGNITION_TICKS);
+        playReport((ServerLevel) player.level(), player);
+    }
+
     private static void clearReload(ItemStack stack) {
         stack.getOrCreateTag().remove(RELOADING);
         stack.getOrCreateTag().remove(RELOAD_AT);
     }
 
     @Override public int getUseDuration(ItemStack stack) { return 72000; }
-    @Override public UseAnim getUseAnimation(ItemStack stack) { return UseAnim.BOW; }
+    @Override public UseAnim getUseAnimation(ItemStack stack) { return UseAnim.CROSSBOW; }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable(isArmed(stack)
+                ? "tooltip.ye_olde_boomstick.armed"
+                : "tooltip.ye_olde_boomstick.empty").withStyle(isArmed(stack) ? ChatFormatting.RED : ChatFormatting.GRAY));
+    }
 
     @Override
     public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
@@ -143,11 +160,20 @@ public final class MusketItem extends Item {
     public static void fire(ServerLevel level, LivingEntity shooter, Vec3 direction) {
         MusketBall ball = new MusketBall(level, shooter);
         Vec3 normalizedDirection = direction.normalize();
-        ball.setPos(shooter.getEyePosition().add(normalizedDirection.scale(0.8D)));
-        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 4.0F, 3.0F);
+        Vec3 muzzle = muzzlePosition(shooter, normalizedDirection);
+        ball.setPos(muzzle);
+        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 7.0F, 3.0F);
         level.addFreshEntity(ball);
         level.gameEvent(shooter, GameEvent.PROJECTILE_SHOOT, shooter.position());
-        SmokeEffects.spawn(level, shooter, normalizedDirection);
+        SmokeEffects.spawn(level, muzzle, normalizedDirection);
+    }
+
+    private static Vec3 muzzlePosition(LivingEntity shooter, Vec3 forward) {
+        Vec3 right = forward.cross(new Vec3(0.0D, 1.0D, 0.0D));
+        if (right.lengthSqr() < 0.001D) right = new Vec3(1.0D, 0.0D, 0.0D);
+        right = right.normalize();
+        double handSide = shooter.getMainArm() == net.minecraft.world.entity.HumanoidArm.RIGHT ? 0.28D : -0.28D;
+        return shooter.getEyePosition().add(forward.scale(1.72D)).add(right.scale(handSide)).add(0.0D, -0.22D, 0.0D);
     }
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {

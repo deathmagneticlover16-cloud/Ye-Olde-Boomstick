@@ -15,7 +15,7 @@ public final class ClientEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(BoomstickMod.MUSKET_BALL_ENTITY.get(), ThrownItemRenderer::new);
+        event.registerEntityRenderer(BoomstickMod.MUSKET_BALL_ENTITY.get(), context -> new ThrownItemRenderer<>(context, 0.6F, true));
     }
 
     @SubscribeEvent

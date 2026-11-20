@@ -3,5 +3,7 @@
   "item.ye_olde_boomstick.musket_ball": "Musket Ball",
   "subtitles.ye_olde_boomstick.musket_fire": "Musket fires",
   "subtitles.ye_olde_boomstick.musket_reload": "Musket reloads",
-  "subtitles.ye_olde_boomstick.musket_armed": "Musket is armed"
+  "subtitles.ye_olde_boomstick.musket_armed": "Musket is armed",
+  "tooltip.ye_olde_boomstick.empty": "Empty",
+  "tooltip.ye_olde_boomstick.armed": "Armed"
 }

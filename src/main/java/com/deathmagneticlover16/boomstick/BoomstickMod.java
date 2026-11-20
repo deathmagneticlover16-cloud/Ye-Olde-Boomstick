@@ -30,7 +30,7 @@ public final class BoomstickMod {
     public static final RegistryObject<Item> MUSKET_BALL = ITEMS.register("musket_ball", () -> new Item(new Item.Properties()));
     public static final RegistryObject<EntityType<MusketBall>> MUSKET_BALL_ENTITY = ENTITIES.register("musket_ball",
             () -> EntityType.Builder.<MusketBall>of(MusketBall::new, MobCategory.MISC)
-                    .sized(0.125F, 0.125F).clientTrackingRange(64).updateInterval(1).build(id("musket_ball").toString()));
+                    .sized(0.0625F, 0.0625F).clientTrackingRange(96).updateInterval(1).build(id("musket_ball").toString()));
     public static final RegistryObject<SoundEvent> MUSKET_FIRE_CLOSE = sound("musket_fire_close");
     public static final RegistryObject<SoundEvent> MUSKET_FIRE_DISTANT = sound("musket_fire_distant");
     public static final RegistryObject<SoundEvent> MUSKET_RELOAD = sound("musket_reload");

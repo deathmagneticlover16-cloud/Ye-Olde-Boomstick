@@ -1,7 +1,6 @@
 package com.deathmagneticlover16.boomstick;
 
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayDeque;
@@ -13,10 +12,9 @@ final class SmokeEffects {
 
     private SmokeEffects() {}
 
-    static void spawn(ServerLevel level, LivingEntity shooter, Vec3 direction) {
+    static void spawn(ServerLevel level, Vec3 muzzle, Vec3 direction) {
         ArrayDeque<Shot> shots = RECENT_SHOTS.computeIfAbsent(level, ignored -> new ArrayDeque<>());
         long now = level.getGameTime();
-        Vec3 muzzle = shooter.getEyePosition().add(direction.scale(1.2D));
         while (!shots.isEmpty() && shots.peekFirst().time < now - 200L) shots.removeFirst();
         shots.addLast(new Shot(now, muzzle));
         long nearbyShots = shots.stream().filter(shot -> shot.position.distanceToSqr(muzzle) <= 1024.0D).count();
