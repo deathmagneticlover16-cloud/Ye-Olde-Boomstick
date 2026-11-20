@@ -26,7 +26,8 @@ import net.minecraft.world.phys.Vec3;
 
 public final class MusketItem extends Item {
     private static final String LOADED = "Loaded";
-    private static final String RELOAD_TICKS = "ReloadTicks";
+    private static final String RELOADING = "Reloading";
+    private static final String RELOAD_AT = "ReloadAt";
     private static final String FIRING = "Firing";
     private static final String FIRE_AT = "FireAt";
     private static final int IGNITION_TICKS = 8;
@@ -53,7 +54,10 @@ public final class MusketItem extends Item {
                     playReport((ServerLevel) level, player);
                 }
             } else {
-                stack.getOrCreateTag().putInt(RELOAD_TICKS, 300 + level.random.nextInt(101));
+                if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
+                    stack.getOrCreateTag().putBoolean(RELOADING, true);
+                    stack.getOrCreateTag().putLong(RELOAD_AT, level.getGameTime() + 300L + level.random.nextInt(101));
+                }
             }
         }
         return InteractionResultHolder.consume(stack);
@@ -62,15 +66,20 @@ public final class MusketItem extends Item {
     @Override
     public void onUseTick(Level level, LivingEntity user, ItemStack stack, int remainingTicks) {
         if (level.isClientSide) return;
-        int elapsed = getUseDuration(stack) - remainingTicks;
         if (stack.getOrCreateTag().getBoolean(FIRING)) {
             tryFire((ServerLevel) level, user, stack);
-        } else if (!isLoaded(stack) && !stack.getOrCreateTag().getBoolean(FIRING)
-                && stack.getOrCreateTag().getInt(RELOAD_TICKS) > 0
-                && elapsed >= stack.getOrCreateTag().getInt(RELOAD_TICKS)) {
+        } else if (!isLoaded(stack) && stack.getOrCreateTag().getBoolean(RELOADING)
+                && level.getGameTime() >= stack.getOrCreateTag().getLong(RELOAD_AT)) {
             setLoaded(stack, true);
-            stack.getOrCreateTag().remove(RELOAD_TICKS);
+            clearReload(stack);
             user.stopUsingItem();
+        }
+    }
+
+    @Override
+    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+        if (!level.isClientSide && stack.getOrCreateTag().getBoolean(RELOADING)) {
+            clearReload(stack);
         }
     }
 
@@ -90,6 +99,11 @@ public final class MusketItem extends Item {
         fire(level, user);
         if (user instanceof ServerPlayer player) player.awardStat(Stats.ITEM_USED.get(this));
         if (user.isUsingItem() && user.getUseItem() == stack) user.stopUsingItem();
+    }
+
+    private static void clearReload(ItemStack stack) {
+        stack.getOrCreateTag().remove(RELOADING);
+        stack.getOrCreateTag().remove(RELOAD_AT);
     }
 
     @Override public int getUseDuration(ItemStack stack) { return 72000; }

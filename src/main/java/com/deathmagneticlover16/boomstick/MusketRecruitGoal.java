@@ -11,7 +11,6 @@ import java.util.EnumSet;
 final class MusketRecruitGoal extends Goal {
     private final Mob recruit;
     private int actionTicks;
-    private int reloadTicks;
     private int idleTicks;
     private int bayonetCooldown;
 
@@ -35,34 +34,33 @@ final class MusketRecruitGoal extends Goal {
         ItemStack musket = recruit.getMainHandItem();
         LivingEntity target = recruit.getTarget();
         if (bayonetCooldown > 0) bayonetCooldown--;
+        boolean hasTarget = target != null && target.isAlive();
+        double distanceSquared = hasTarget ? recruit.distanceToSqr(target) : Double.MAX_VALUE;
 
-        if (target == null || !target.isAlive()) {
+        if (!MusketItem.isLoaded(musket)) {
+            if (hasTarget && distanceSquared <= 4.0D) {
+                markActive(musket);
+                musket.getOrCreateTag().remove("RecruitReloadAt");
+                if (bayonetCooldown == 0) {
+                    target.hurt(recruit.damageSources().mobAttack(recruit), 6.0F);
+                    bayonetCooldown = 20;
+                }
+            } else if (recruit.level().getGameTime() >= reloadDeadline(musket)) {
+                markActive(musket);
+                MusketItem.setLoaded(musket, true);
+                musket.getOrCreateTag().remove("RecruitReloadAt");
+            } else markActive(musket);
+            return;
+        }
+
+        musket.getOrCreateTag().remove("RecruitReloadAt");
+        if (!hasTarget) {
             markIdle(musket);
             actionTicks = 0;
             return;
         }
 
         recruit.getLookControl().setLookAt(target, 30.0F, 30.0F);
-        double distanceSquared = recruit.distanceToSqr(target);
-
-        if (!MusketItem.isLoaded(musket)) {
-            if (distanceSquared <= 4.0D) {
-                markActive(musket);
-                reloadTicks = 0;
-                if (bayonetCooldown == 0) {
-                    target.hurt(recruit.damageSources().mobAttack(recruit), 6.0F);
-                    bayonetCooldown = 20;
-                }
-            } else if (++reloadTicks >= reloadLength(musket)) {
-                markActive(musket);
-                MusketItem.setLoaded(musket, true);
-                musket.getOrCreateTag().remove("RecruitReloadTicks");
-                reloadTicks = 0;
-            } else markActive(musket);
-            return;
-        }
-
-        reloadTicks = 0;
         if (distanceSquared <= 2304.0D && recruit.hasLineOfSight(target)) {
             markActive(musket);
             if (actionTicks == 0) {
@@ -87,10 +85,11 @@ final class MusketRecruitGoal extends Goal {
         if (++idleTicks >= 50) musket.getOrCreateTag().putBoolean("Shouldered", true);
     }
 
-    private int reloadLength(ItemStack musket) {
-        if (!musket.getOrCreateTag().contains("RecruitReloadTicks")) {
-            musket.getOrCreateTag().putInt("RecruitReloadTicks", 300 + recruit.getRandom().nextInt(101));
+    private long reloadDeadline(ItemStack musket) {
+        if (!musket.getOrCreateTag().contains("RecruitReloadAt")) {
+            musket.getOrCreateTag().putLong("RecruitReloadAt",
+                    recruit.level().getGameTime() + 300L + recruit.getRandom().nextInt(101));
         }
-        return musket.getOrCreateTag().getInt("RecruitReloadTicks");
+        return musket.getOrCreateTag().getLong("RecruitReloadAt");
     }
 }
