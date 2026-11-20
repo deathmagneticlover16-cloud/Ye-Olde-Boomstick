@@ -1,0 +1,10 @@
+{
+  "musket_fire_close": {
+    "subtitle": "subtitles.ye_olde_boomstick.musket_fire",
+    "sounds": [{"name": "ye_olde_boomstick:gunshot_1", "stream": true}]
+  },
+  "musket_fire_distant": {
+    "subtitle": "subtitles.ye_olde_boomstick.musket_fire",
+    "sounds": [{"name": "ye_olde_boomstick:gunshot_distant_1", "stream": true}]
+  }
+}

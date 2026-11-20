@@ -1,0 +1,55 @@
+package com.deathmagneticlover16.boomstick;
+
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+@Mod(BoomstickMod.MOD_ID)
+public final class BoomstickMod {
+    public static final String MOD_ID = "ye_olde_boomstick";
+
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MOD_ID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, MOD_ID);
+
+    public static final RegistryObject<Item> MUSKET = ITEMS.register("musket", () -> new MusketItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> MUSKET_BALL = ITEMS.register("musket_ball", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<EntityType<MusketBall>> MUSKET_BALL_ENTITY = ENTITIES.register("musket_ball",
+            () -> EntityType.Builder.<MusketBall>of(MusketBall::new, MobCategory.MISC)
+                    .sized(0.125F, 0.125F).clientTrackingRange(64).updateInterval(1).build(id("musket_ball").toString()));
+    public static final RegistryObject<SoundEvent> MUSKET_FIRE_CLOSE = sound("musket_fire_close");
+    public static final RegistryObject<SoundEvent> MUSKET_FIRE_DISTANT = sound("musket_fire_distant");
+
+    public BoomstickMod() {
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        ITEMS.register(bus);
+        ENTITIES.register(bus);
+        SOUNDS.register(bus);
+        bus.addListener(this::addCreativeTabItems);
+    }
+
+    private static RegistryObject<SoundEvent> sound(String name) {
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(id(name)));
+    }
+
+    private void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.COMBAT) {
+            event.accept(MUSKET);
+            event.accept(MUSKET_BALL);
+        }
+    }
+
+    public static ResourceLocation id(String path) {
+        return new ResourceLocation(MOD_ID, path);
+    }
+}

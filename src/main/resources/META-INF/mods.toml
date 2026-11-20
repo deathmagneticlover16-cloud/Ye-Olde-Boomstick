@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="ye_olde_boomstick"
+version="${mod_version}"
+displayName="Ye Olde Boomstick"
+authors="deathmagneticlover16-cloud"
+description='''A semi-arcade musket mod with recruit support.'''
+
+[[dependencies.ye_olde_boomstick]]
+modId="forge"
+mandatory=true
+versionRange="[47.4.0,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.ye_olde_boomstick]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.ye_olde_boomstick]]
+modId="recruits"
+mandatory=false
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"
