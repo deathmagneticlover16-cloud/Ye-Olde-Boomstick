@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.function.Supplier;
 
 public final class BoomstickNetwork {
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             BoomstickMod.id("main"), () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
 
@@ -44,9 +44,11 @@ public final class BoomstickNetwork {
         CHANNEL.sendToServer(new FireMusketPacket(hand));
     }
 
-    public static void playGunshot(ServerPlayer listener, boolean distant, Vec3 position, float volume, float pitch) {
+    public static void playGunshot(ServerPlayer listener, Vec3 position, float closeVolume, float closePitch,
+                                   float distantVolume, float distantPitch) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> listener),
-                new GunshotPacket(distant, position.x, position.y, position.z, volume, pitch));
+                new GunshotPacket(position.x, position.y, position.z, closeVolume, closePitch,
+                        distantVolume, distantPitch));
     }
 
     public static void shakeScreen(ServerPlayer player) {
@@ -95,26 +97,28 @@ public final class BoomstickNetwork {
         }
     }
 
-    private record GunshotPacket(boolean distant, double x, double y, double z, float volume, float pitch) {
+    private record GunshotPacket(double x, double y, double z, float closeVolume, float closePitch,
+                                 float distantVolume, float distantPitch) {
         private static void encode(GunshotPacket packet, FriendlyByteBuf buffer) {
-            buffer.writeBoolean(packet.distant);
             buffer.writeDouble(packet.x);
             buffer.writeDouble(packet.y);
             buffer.writeDouble(packet.z);
-            buffer.writeFloat(packet.volume);
-            buffer.writeFloat(packet.pitch);
+            buffer.writeFloat(packet.closeVolume);
+            buffer.writeFloat(packet.closePitch);
+            buffer.writeFloat(packet.distantVolume);
+            buffer.writeFloat(packet.distantPitch);
         }
 
         private static GunshotPacket decode(FriendlyByteBuf buffer) {
-            return new GunshotPacket(buffer.readBoolean(), buffer.readDouble(), buffer.readDouble(),
-                    buffer.readDouble(), buffer.readFloat(), buffer.readFloat());
+            return new GunshotPacket(buffer.readDouble(), buffer.readDouble(), buffer.readDouble(),
+                    buffer.readFloat(), buffer.readFloat(), buffer.readFloat(), buffer.readFloat());
         }
 
         private static void handle(GunshotPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
             NetworkEvent.Context context = contextSupplier.get();
             context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                    () -> () -> ClientGunshotSounds.play(packet.distant, packet.x, packet.y, packet.z,
-                            packet.volume, packet.pitch)));
+                    () -> () -> ClientGunshotSounds.enqueue(packet.x, packet.y, packet.z,
+                            packet.closeVolume, packet.closePitch, packet.distantVolume, packet.distantPitch)));
             context.setPacketHandled(true);
         }
     }

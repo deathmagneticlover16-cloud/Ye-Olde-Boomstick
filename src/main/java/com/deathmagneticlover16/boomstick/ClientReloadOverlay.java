@@ -3,6 +3,7 @@ package com.deathmagneticlover16.boomstick;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,8 +14,9 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = BoomstickMod.MOD_ID, value = Dist.CLIENT)
 public final class ClientReloadOverlay {
+    private static final ResourceLocation GUI_ICONS = new ResourceLocation("textures/gui/icons.png");
     private static final int[] STAGE_COLORS = {
-            0xFFD63A35, 0xFFF07C2E, 0xFFF2C744, 0xFF9ACD45, 0xFF32A852
+            0xD63A35, 0xF07C2E, 0xF2C744, 0x9ACD45, 0x32A852
     };
 
     private ClientReloadOverlay() {}
@@ -38,17 +40,16 @@ public final class ClientReloadOverlay {
     private static void drawBar(GuiGraphics graphics, int screenWidth, int screenHeight, float progress) {
         int left = screenWidth / 2 - 91;
         int top = screenHeight - 29;
-        graphics.fill(left - 1, top - 1, left + 183, top + 6, 0xCC111111);
+        graphics.blit(GUI_ICONS, left, top, 0, 84, 182, 5);
 
-        for (int stage = 0; stage < 5; stage++) {
-            int segmentLeft = left + stage * 37;
-            int segmentRight = stage == 4 ? left + 182 : segmentLeft + 34;
-            float stageProgress = Mth.clamp(progress * 5.0F - stage, 0.0F, 1.0F);
-            graphics.fill(segmentLeft, top, segmentRight, top + 5, 0xFF3A3A3A);
-            int filledRight = segmentLeft + Math.round((segmentRight - segmentLeft) * stageProgress);
-            if (filledRight > segmentLeft) {
-                graphics.fill(segmentLeft, top, filledRight, top + 5, STAGE_COLORS[stage]);
-            }
+        int filledWidth = Math.round(progress * 183.0F);
+        if (filledWidth > 0) {
+            int stage = Math.min(4, (int) (progress * 5.0F));
+            int color = STAGE_COLORS[stage];
+            graphics.setColor(((color >> 16) & 0xFF) / 255.0F,
+                    ((color >> 8) & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
+            graphics.blit(GUI_ICONS, left, top, 0, 89, filledWidth, 5);
+            graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 }

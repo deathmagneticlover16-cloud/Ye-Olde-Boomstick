@@ -19,21 +19,20 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public final class MusketItem extends Item {
+public final class MusketItem extends CrossbowItem {
     private static final String ARMED = "Armed";
     private static final String LEGACY_LOADED = "Loaded";
     private static final String RELOADING = "Reloading";
@@ -60,12 +59,8 @@ public final class MusketItem extends Item {
         consumer.accept(new IClientItemExtensions() {
             @Override
             public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
-                var entityId = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
-                boolean isCrossbowRecruit = entityId != null
-                        && entityId.getNamespace().equals("recruits")
-                        && entityId.getPath().contains("crossbow");
                 boolean shouldered = stack.hasTag() && stack.getTag().getBoolean("Shouldered");
-                if (isCrossbowRecruit && isArmed(stack) && !shouldered && !isReloading(stack)) {
+                if (isArmed(stack) && !shouldered && !isReloading(stack)) {
                     return HumanoidModel.ArmPose.CROSSBOW_HOLD;
                 }
                 return null;
@@ -121,6 +116,9 @@ public final class MusketItem extends Item {
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
         super.inventoryTick(stack, level, entity, slot, selected);
         if (!level.isClientSide && entity instanceof LivingEntity living) {
+            if (CrossbowItem.isCharged(stack) != isArmed(stack)) {
+                CrossbowItem.setCharged(stack, isArmed(stack));
+            }
             if (stack.getOrCreateTag().getBoolean(FIRING)) tryFire((ServerLevel) level, living, stack);
             if (stack.getOrCreateTag().getBoolean(RELOADING)
                     && (!living.isUsingItem() || living.getUseItem() != stack)) {
@@ -215,6 +213,7 @@ public final class MusketItem extends Item {
     public static void setArmed(ItemStack stack, boolean armed) {
         stack.getOrCreateTag().putBoolean(ARMED, armed);
         stack.getOrCreateTag().remove(LEGACY_LOADED);
+        CrossbowItem.setCharged(stack, armed);
     }
 
     public static void fire(ServerLevel level, LivingEntity shooter) {
@@ -227,7 +226,7 @@ public final class MusketItem extends Item {
         Vec3 normalizedDirection = direction.normalize();
         Vec3 muzzle = muzzlePosition(shooter, normalizedDirection);
         ball.setPos(muzzle);
-        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 7.0F, 5.0F);
+        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 7.0F, 10.0F);
         level.addFreshEntity(ball);
         level.gameEvent(shooter, GameEvent.PROJECTILE_SHOOT, shooter.position());
         SmokeEffects.spawn(level, muzzle, normalizedDirection);
@@ -252,12 +251,8 @@ public final class MusketItem extends Item {
             float closeVolume = 1.0F - crossfade;
             float distantVolume = crossfade * 1.5F;
             if (distance > 40.0D) distantVolume *= (float) (1.0D - (distance - 40.0D) / 120.0D);
-            if (closeVolume > 0.0F) {
-                BoomstickNetwork.playGunshot(listener, false, shooter.position(), closeVolume, closePitch);
-            }
-            if (distantVolume > 0.0F) {
-                BoomstickNetwork.playGunshot(listener, true, shooter.position(), distantVolume, distantPitch);
-            }
+            BoomstickNetwork.playGunshot(listener, shooter.position(), closeVolume, closePitch,
+                    distantVolume, distantPitch);
         }
     }
 
