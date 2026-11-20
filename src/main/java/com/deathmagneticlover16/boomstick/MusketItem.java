@@ -2,9 +2,7 @@ package com.deathmagneticlover16.boomstick;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import net.minecraft.core.Holder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -147,6 +145,11 @@ public final class MusketItem extends Item {
         return true;
     }
 
+    public static boolean isReloading(ItemStack stack) {
+        return stack.hasTag() && (stack.getTag().getBoolean(RELOADING)
+                || stack.getTag().contains("RecruitReloadAt"));
+    }
+
     public static void setArmed(ItemStack stack, boolean armed) {
         stack.getOrCreateTag().putBoolean(ARMED, armed);
         stack.getOrCreateTag().remove(LEGACY_LOADED);
@@ -177,16 +180,21 @@ public final class MusketItem extends Item {
     }
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {
-        long seed = level.random.nextLong();
         float closePitch = 0.95F + level.random.nextFloat() * 0.10F;
         float distantPitch = 0.875F + level.random.nextFloat() * 0.25F;
         for (ServerPlayer listener : level.players()) {
             double distance = listener.distanceTo(shooter);
-            SoundEvent sound = distance >= 40.0D ? BoomstickMod.MUSKET_FIRE_DISTANT.get() : BoomstickMod.MUSKET_FIRE_CLOSE.get();
-            float volume = distance >= 40.0D ? 8.0F : 4.0F;
-            float pitch = distance >= 40.0D ? distantPitch : closePitch;
-            listener.connection.send(new ClientboundSoundPacket(Holder.direct(sound), SoundSource.PLAYERS,
-                    shooter.getX(), shooter.getY(), shooter.getZ(), volume, pitch, seed));
+            if (distance > 160.0D) continue;
+            float crossfade = (float) Math.min(distance / 40.0D, 1.0D);
+            float closeVolume = 1.0F - crossfade;
+            float distantVolume = crossfade * 1.5F;
+            if (distance > 40.0D) distantVolume *= (float) (1.0D - (distance - 40.0D) / 120.0D);
+            if (closeVolume > 0.0F) {
+                BoomstickNetwork.playGunshot(listener, false, shooter.position(), closeVolume, closePitch);
+            }
+            if (distantVolume > 0.0F) {
+                BoomstickNetwork.playGunshot(listener, true, shooter.position(), distantVolume, distantPitch);
+            }
         }
     }
 

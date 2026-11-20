@@ -2,6 +2,7 @@
   "parent": "ye_olde_boomstick:item/musket_fired",
   "overrides": [
     {"predicate": {"ye_olde_boomstick:armed": 1.0}, "model": "ye_olde_boomstick:item/musket_loaded"},
+    {"predicate": {"ye_olde_boomstick:reloading": 1.0}, "model": "ye_olde_boomstick:item/musket_loaded"},
     {"predicate": {"ye_olde_boomstick:shouldered": 1.0}, "model": "ye_olde_boomstick:item/musket_shoulder"}
   ]
 }

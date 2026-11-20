@@ -68,6 +68,7 @@ final class MusketRecruitGoal extends Goal {
                 musket.getOrCreateTag().remove("RecruitReloadAt");
                 BoomstickNetwork.stopReloadSound(recruit);
                 MusketItem.playActionSound((ServerLevel) recruit.level(), recruit, BoomstickMod.MUSKET_ARMED.get(), 1.0F);
+                recruit.stopUsingItem();
             } else {
                 markActive(musket);
                 holdMusketUp();
@@ -88,7 +89,7 @@ final class MusketRecruitGoal extends Goal {
         boolean canFire = hasTarget ? distanceSquared <= 2304.0D && recruit.hasLineOfSight(target) : true;
         if (canFire) {
             markActive(musket);
-            holdMusketUp();
+            recruit.stopUsingItem();
             if (actionTicks == 0) {
                 actionTicks = 8;
                 MusketItem.playReport((ServerLevel) recruit.level(), recruit);

@@ -23,7 +23,9 @@ public final class CommonEvents {
         ResourceLocation id = ForgeRegistries.ENTITY_TYPES.getKey(mob.getType());
         if (id != null && id.getNamespace().equals("recruits") && id.getPath().contains("crossbow")
                 && CONFIGURED_RECRUITS.add(mob)) {
-            mob.goalSelector.addGoal(2, new MusketRecruitGoal(mob));
+            // Recruits' built-in priority-0 crossbow goal claims LOOK during strategic fire,
+            // even when the held item is not a crossbow. Run first so the musket goal is not starved.
+            mob.goalSelector.addGoal(-1, new MusketRecruitGoal(mob));
         }
     }
 }

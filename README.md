@@ -10,12 +10,12 @@ A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
 - Musket balls deal 10 damage, travel at seven blocks per tick, and use a controlled three-degree spread cone.
 - The bayonet gives the musket 6 total melee damage.
 - Custom drifting smoke grows denser with nearby volleys. Five short-lived sparks appear at the muzzle.
-- Listeners at least 40 blocks away receive the distant gunshot recording.
+- Close and distant reports crossfade over the first 40 blocks. At and beyond that threshold, only the distant report remains.
 - Close gunshots vary by up to 5% in pitch. Distant reports vary by up to 12.5%.
 
 ## Recruits compatibility
 
-Recruits crossbowmen automatically gain musket handling when a musket is placed in their inventory. They switch to it for an existing target or strategic-fire position, aim it in the crossbow pose, fire at range, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
+Recruits crossbowmen automatically gain musket handling when a musket is placed in their inventory. They switch to it for an existing target or strategic-fire position, raise it while reloading, fire at range without holding a crossbow aiming pose while armed, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
 
 Recruits is an optional dependency. Ye Olde Boomstick also runs on its own.
 

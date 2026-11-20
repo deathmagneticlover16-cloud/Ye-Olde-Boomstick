@@ -29,6 +29,8 @@ public final class ClientEvents {
         event.enqueueWork(() -> {
             ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("armed"),
                     (stack, level, entity, seed) -> MusketItem.isArmed(stack) ? 1.0F : 0.0F);
+            ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("reloading"),
+                    (stack, level, entity, seed) -> MusketItem.isReloading(stack) ? 1.0F : 0.0F);
             ItemProperties.register(BoomstickMod.MUSKET.get(), BoomstickMod.id("shouldered"),
                     (stack, level, entity, seed) -> stack.hasTag() && stack.getTag().getBoolean("Shouldered") ? 1.0F : 0.0F);
         });
