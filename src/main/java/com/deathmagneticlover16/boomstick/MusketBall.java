@@ -7,6 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public final class MusketBall extends ThrowableItemProjectile {
     public MusketBall(EntityType<? extends MusketBall> type, Level level) {
@@ -31,7 +32,14 @@ public final class MusketBall extends ThrowableItemProjectile {
     protected void onHitEntity(EntityHitResult result) {
         super.onHitEntity(result);
         if (!level().isClientSide) {
-            result.getEntity().hurt(damageSources().thrown(this, getOwner()), 10.0F);
+            float damage = 24.0F;
+            if (result.getEntity() instanceof LivingEntity target) {
+                var entityId = ForgeRegistries.ENTITY_TYPES.getKey(target.getType());
+                if (entityId != null && entityId.getNamespace().equals("recruits") && target.getArmorValue() < 5) {
+                    damage = Math.max(damage, (target.getHealth() + target.getAbsorptionAmount()) * 1.35F + 4.0F);
+                }
+            }
+            result.getEntity().hurt(damageSources().thrown(this, getOwner()), damage);
         }
     }
 

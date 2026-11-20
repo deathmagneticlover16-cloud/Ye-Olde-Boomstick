@@ -15,7 +15,7 @@ public final class ClientInputEvents {
 
     @SubscribeEvent
     public static void fireMusket(InputEvent.InteractionKeyMappingTriggered event) {
-        if (!event.isAttack()) return;
+        if (!event.isUseItem()) return;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 

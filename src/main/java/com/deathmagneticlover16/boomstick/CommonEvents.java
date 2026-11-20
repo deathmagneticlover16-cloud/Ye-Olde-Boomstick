@@ -3,6 +3,7 @@ package com.deathmagneticlover16.boomstick;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -26,6 +27,14 @@ public final class CommonEvents {
             // Recruits' built-in priority-0 crossbow goal claims LOOK during strategic fire,
             // even when the held item is not a crossbow. Run first so the musket goal is not starved.
             mob.goalSelector.addGoal(-1, new MusketRecruitGoal(mob));
+        }
+    }
+
+    @SubscribeEvent
+    public static void preventCreativeMusketBlockBreaking(PlayerInteractEvent.LeftClickBlock event) {
+        if (event.getEntity().getAbilities().instabuild
+                && event.getEntity().getMainHandItem().is(BoomstickMod.MUSKET.get())) {
+            event.setCanceled(true);
         }
     }
 }

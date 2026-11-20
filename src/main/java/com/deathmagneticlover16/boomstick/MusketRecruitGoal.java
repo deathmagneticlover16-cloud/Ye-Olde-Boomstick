@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 final class MusketRecruitGoal extends Goal {
     private final Mob recruit;
     private int actionTicks;
+    private int shotDelayTicks = -1;
     private int idleTicks;
     private int bayonetCooldown;
     private final Method shouldStrategicFireMethod;
@@ -91,6 +92,9 @@ final class MusketRecruitGoal extends Goal {
             markActive(musket);
             recruit.stopUsingItem();
             if (actionTicks == 0) {
+                if (shotDelayTicks < 0) shotDelayTicks = recruit.getRandom().nextInt(6);
+                if (shotDelayTicks-- > 0) return;
+                shotDelayTicks = -1;
                 actionTicks = 8;
                 MusketItem.playReport((ServerLevel) recruit.level(), recruit);
             } else if (--actionTicks == 0) {
@@ -100,6 +104,7 @@ final class MusketRecruitGoal extends Goal {
             }
         } else {
             actionTicks = 0;
+            shotDelayTicks = -1;
             markIdle(musket);
         }
     }
@@ -111,7 +116,9 @@ final class MusketRecruitGoal extends Goal {
 
     private void markIdle(ItemStack musket) {
         recruit.stopUsingItem();
-        if (++idleTicks >= 50) musket.getOrCreateTag().putBoolean("Shouldered", true);
+        if (++idleTicks >= 50) {
+            musket.getOrCreateTag().putBoolean("Shouldered", true);
+        }
     }
 
     private long reloadDeadline(ItemStack musket) {
@@ -127,6 +134,7 @@ final class MusketRecruitGoal extends Goal {
         cancelReload(recruit.getMainHandItem());
         recruit.stopUsingItem();
         actionTicks = 0;
+        shotDelayTicks = -1;
     }
 
     private void cancelReload(ItemStack musket) {

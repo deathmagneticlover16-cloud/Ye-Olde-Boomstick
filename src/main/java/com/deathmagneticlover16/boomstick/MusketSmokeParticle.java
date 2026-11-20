@@ -23,7 +23,7 @@ public final class MusketSmokeParticle extends TextureSheetParticle {
         this.quadSize = startingSize;
         float shade = 0.82F + level.random.nextFloat() * 0.16F;
         this.setColor(shade, shade, shade);
-        this.alpha = 0.98F;
+        this.alpha = 0.32F;
         this.pickSprite(sprites);
     }
 
@@ -32,7 +32,7 @@ public final class MusketSmokeParticle extends TextureSheetParticle {
         super.tick();
         float life = (float) age / lifetime;
         this.quadSize = startingSize * (1.0F + life * 2.4F);
-        if (life > 0.80F) this.alpha = 0.98F * (1.0F - life) / 0.20F;
+        if (life > 0.80F) this.alpha = 0.32F * (1.0F - life) / 0.20F;
     }
 
     @Override

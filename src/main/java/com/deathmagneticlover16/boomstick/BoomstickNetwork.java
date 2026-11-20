@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.function.Supplier;
 
 public final class BoomstickNetwork {
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "4";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             BoomstickMod.id("main"), () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
 
@@ -28,6 +28,8 @@ public final class BoomstickNetwork {
                 FireMusketPacket::decode, FireMusketPacket::handle);
         CHANNEL.registerMessage(2, GunshotPacket.class, GunshotPacket::encode,
                 GunshotPacket::decode, GunshotPacket::handle);
+        CHANNEL.registerMessage(3, ScreenShakePacket.class, ScreenShakePacket::encode,
+                ScreenShakePacket::decode, ScreenShakePacket::handle);
     }
 
     public static void startReloadSound(Entity source) {
@@ -45,6 +47,10 @@ public final class BoomstickNetwork {
     public static void playGunshot(ServerPlayer listener, boolean distant, Vec3 position, float volume, float pitch) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> listener),
                 new GunshotPacket(distant, position.x, position.y, position.z, volume, pitch));
+    }
+
+    public static void shakeScreen(ServerPlayer player) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new ScreenShakePacket());
     }
 
     private static void sendReloadSound(Entity source, boolean start) {
@@ -109,6 +115,21 @@ public final class BoomstickNetwork {
             context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
                     () -> () -> ClientGunshotSounds.play(packet.distant, packet.x, packet.y, packet.z,
                             packet.volume, packet.pitch)));
+            context.setPacketHandled(true);
+        }
+    }
+
+    private record ScreenShakePacket() {
+        private static void encode(ScreenShakePacket packet, FriendlyByteBuf buffer) {}
+
+        private static ScreenShakePacket decode(FriendlyByteBuf buffer) {
+            return new ScreenShakePacket();
+        }
+
+        private static void handle(ScreenShakePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+            NetworkEvent.Context context = contextSupplier.get();
+            context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> ClientScreenShake.start()));
             context.setPacketHandled(true);
         }
     }
