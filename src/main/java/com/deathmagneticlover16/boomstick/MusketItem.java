@@ -249,7 +249,7 @@ public final class MusketItem extends CrossbowItem {
             if (distance > 160.0D) continue;
             float crossfade = (float) Math.min(distance / 40.0D, 1.0D);
             float closeVolume = 1.0F - crossfade;
-            float distantVolume = crossfade * 1.5F;
+            float distantVolume = crossfade * 2.25F;
             if (distance > 40.0D) distantVolume *= (float) (1.0D - (distance - 40.0D) / 120.0D);
             BoomstickNetwork.playGunshot(listener, shooter.position(), closeVolume, closePitch,
                     distantVolume, distantPitch);

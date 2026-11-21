@@ -14,7 +14,7 @@ public final class ClientScreenShake {
     private ClientScreenShake() {}
 
     public static void start() {
-        remainingTicks = 5;
+        remainingTicks = 6;
     }
 
     @SubscribeEvent
@@ -23,11 +23,11 @@ public final class ClientScreenShake {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || Minecraft.getInstance().isPaused()) return;
 
-        float strength = remainingTicks / 5.0F;
-        player.setXRot(player.getXRot() - 0.34F * strength
-                + (player.getRandom().nextFloat() - 0.5F) * 0.18F * strength);
+        float strength = remainingTicks / 6.0F;
+        player.setXRot(player.getXRot() - 0.38F * strength
+                + (player.getRandom().nextFloat() - 0.5F) * 0.24F * strength);
         player.setYRot(player.getYRot()
-                + (player.getRandom().nextFloat() - 0.5F) * 0.28F * strength);
+                + (player.getRandom().nextFloat() - 0.5F) * 0.36F * strength);
         remainingTicks--;
     }
 }

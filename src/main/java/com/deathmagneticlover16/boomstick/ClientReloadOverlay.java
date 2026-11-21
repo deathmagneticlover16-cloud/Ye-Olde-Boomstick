@@ -51,5 +51,10 @@ public final class ClientReloadOverlay {
             graphics.blit(GUI_ICONS, left, top, 0, 89, filledWidth, 5);
             graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
+
+        for (int stage = 1; stage < 5; stage++) {
+            int dividerX = left + Math.round(182.0F * stage / 5.0F);
+            graphics.fill(dividerX - 1, top, dividerX + 1, top + 5, 0xFF101010);
+        }
     }
 }
