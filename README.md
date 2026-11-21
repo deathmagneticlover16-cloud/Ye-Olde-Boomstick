@@ -11,7 +11,7 @@ A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
 - The bayonet gives the musket 6 total melee damage.
 - Custom translucent drifting smoke grows denser with nearby volleys. Five short-lived sparks appear at the muzzle.
 - Close and distant reports crossfade over the first 40 blocks. At and beyond that threshold, only the distant report remains, with 50% more gain than the previous mix.
-- Close gunshots vary by up to 12% in pitch. Distant reports vary by up to 12.5%. Volley reports are queued with a short gap so every shot remains audible without exhausting the sound channel pool.
+- Close and distant reports each randomly select from four mono recordings. Close gunshots vary by up to 12% in pitch and distant reports by up to 12.5%. Volley reports are queued with a short gap so every shot remains audible without exhausting the sound channel pool.
 
 ## Recruits compatibility
 

@@ -1,11 +1,21 @@
 {
   "musket_fire_close": {
     "subtitle": "subtitles.ye_olde_boomstick.musket_fire",
-    "sounds": [{"name": "ye_olde_boomstick:gunshot_1", "stream": true}]
+    "sounds": [
+      "ye_olde_boomstick:musket_shot_1",
+      "ye_olde_boomstick:musket_shot_2",
+      "ye_olde_boomstick:musket_shot_3",
+      "ye_olde_boomstick:musket_shot_4"
+    ]
   },
   "musket_fire_distant": {
     "subtitle": "subtitles.ye_olde_boomstick.musket_fire",
-    "sounds": [{"name": "ye_olde_boomstick:gunshot_distant_1", "stream": true}]
+    "sounds": [
+      "ye_olde_boomstick:musket_shot_distant_1",
+      "ye_olde_boomstick:musket_shot_distant_2",
+      "ye_olde_boomstick:musket_shot_distant_3",
+      "ye_olde_boomstick:musket_shot_distant_4"
+    ]
   },
   "musket_reload": {
     "subtitle": "subtitles.ye_olde_boomstick.musket_reload",
