@@ -150,7 +150,7 @@ public final class MusketItem extends CrossbowItem {
                 || stack.getOrCreateTag().getBoolean(RELOADING)) return;
         stack.getOrCreateTag().putBoolean("Shouldered", false);
         stack.getOrCreateTag().putBoolean(FIRING, true);
-        int reportDelay = player.getRandom().nextInt(2);
+        int reportDelay = player.getRandom().nextInt(3);
         stack.getOrCreateTag().putLong(REPORT_AT, player.level().getGameTime() + reportDelay);
         stack.getOrCreateTag().putLong(FIRE_AT,
                 player.level().getGameTime() + reportDelay + IGNITION_TICKS);
