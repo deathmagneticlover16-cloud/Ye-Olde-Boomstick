@@ -8,6 +8,8 @@ A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
 - Hold right click with an empty musket for 15 seconds to reload. The vanilla horse-jump meter replaces the XP bar and changes through five red-to-green stages. Releasing or unequipping pauses at the beginning of the current stage and stops the sound. Reloading consumes no ammunition.
 - A completed reload enters the armed stage and plays an audible confirmation. The musket stays armed until the next right click fires it.
 - Musket balls deal 24 damage, travel at seven blocks per tick, and use 10 inaccuracy. Recruits below five armor are guaranteed to take lethal damage from a standard full-health hit.
+- Musket balls play one of eleven positional whizz sounds when passing within four blocks of a player. Each projectile can whizz once per listener.
+- Block impacts are non-destructive but throw seven particles from the struck block and play a short, pitched version of that block's break sound.
 - The bayonet gives the musket 6 total melee damage.
 - Custom translucent drifting smoke grows denser with nearby volleys. Five short-lived sparks appear at the muzzle.
 - Close and distant reports crossfade over the first 40 blocks. At and beyond that threshold, only the distant report remains, with 50% more gain than the previous mix.

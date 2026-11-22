@@ -35,6 +35,7 @@ public final class BoomstickMod {
     public static final RegistryObject<SoundEvent> MUSKET_FIRE_DISTANT = sound("musket_fire_distant");
     public static final RegistryObject<SoundEvent> MUSKET_RELOAD = sound("musket_reload");
     public static final RegistryObject<SoundEvent> MUSKET_ARMED = sound("musket_armed");
+    public static final RegistryObject<SoundEvent> MUSKET_WHIZZ = sound("musket_whizz");
     public static final RegistryObject<SimpleParticleType> MUSKET_SMOKE = PARTICLES.register("musket_smoke", () -> new SimpleParticleType(false));
     public static final RegistryObject<SimpleParticleType> MUSKET_SPARK = PARTICLES.register("musket_spark", () -> new SimpleParticleType(false));
 
