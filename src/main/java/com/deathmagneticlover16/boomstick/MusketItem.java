@@ -150,7 +150,7 @@ public final class MusketItem extends CrossbowItem {
                 || stack.getOrCreateTag().getBoolean(RELOADING)) return;
         stack.getOrCreateTag().putBoolean("Shouldered", false);
         stack.getOrCreateTag().putBoolean(FIRING, true);
-        int reportDelay = player.getRandom().nextInt(4);
+        int reportDelay = player.getRandom().nextInt(2);
         stack.getOrCreateTag().putLong(REPORT_AT, player.level().getGameTime() + reportDelay);
         stack.getOrCreateTag().putLong(FIRE_AT,
                 player.level().getGameTime() + reportDelay + IGNITION_TICKS);
@@ -242,8 +242,8 @@ public final class MusketItem extends CrossbowItem {
     }
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {
-        float closePitch = 0.88F + level.random.nextFloat() * 0.24F;
-        float distantPitch = 0.875F + level.random.nextFloat() * 0.25F;
+        float closePitch = 0.85F + level.random.nextFloat() * 0.30F;
+        float distantPitch = 0.85F + level.random.nextFloat() * 0.30F;
         for (ServerPlayer listener : level.players()) {
             double distance = listener.distanceTo(shooter);
             if (distance > 160.0D) continue;

@@ -2,54 +2,23 @@ package com.deathmagneticlover16.boomstick;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.ArrayDeque;
-
-@Mod.EventBusSubscriber(modid = BoomstickMod.MOD_ID, value = Dist.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public final class ClientGunshotSounds {
-    private static final ArrayDeque<Report> PENDING = new ArrayDeque<>();
-    private static int spacingTicks;
-
     private ClientGunshotSounds() {}
 
-    public static void enqueue(double x, double y, double z, float closeVolume, float closePitch,
-                               float distantVolume, float distantPitch) {
-        PENDING.addLast(new Report(x, y, z, closeVolume, closePitch, distantVolume, distantPitch));
-    }
-
-    @SubscribeEvent
-    public static void clientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        if (Minecraft.getInstance().level == null) {
-            PENDING.clear();
-            spacingTicks = 0;
-            return;
-        }
-        if (spacingTicks > 0) spacingTicks--;
-        if (spacingTicks > 0 || PENDING.isEmpty()) return;
-
-        play(PENDING.removeFirst());
-        spacingTicks = 4;
-    }
-
-    private static void play(Report report) {
-        float dominantVolume = Math.max(report.closeVolume, report.distantVolume);
+    public static void play(double x, double y, double z, float closeVolume, float closePitch,
+                            float distantVolume, float distantPitch) {
+        float dominantVolume = Math.max(closeVolume, distantVolume);
         float layerThreshold = dominantVolume * 0.05F;
-        if (report.closeVolume > 0.0F && report.closeVolume >= layerThreshold) {
+        if (closeVolume > 0.0F && closeVolume >= layerThreshold) {
             Minecraft.getInstance().getSoundManager().play(new MusketGunshotSoundInstance(
-                    BoomstickMod.MUSKET_FIRE_CLOSE.get(), report.x, report.y, report.z,
-                    report.closeVolume, report.closePitch));
+                    BoomstickMod.MUSKET_FIRE_CLOSE.get(), x, y, z, closeVolume, closePitch));
         }
-        if (report.distantVolume > 0.0F && report.distantVolume >= layerThreshold) {
+        if (distantVolume > 0.0F && distantVolume >= layerThreshold) {
             Minecraft.getInstance().getSoundManager().play(new MusketGunshotSoundInstance(
-                    BoomstickMod.MUSKET_FIRE_DISTANT.get(), report.x, report.y, report.z,
-                    report.distantVolume, report.distantPitch));
+                    BoomstickMod.MUSKET_FIRE_DISTANT.get(), x, y, z, distantVolume, distantPitch));
         }
     }
-
-    private record Report(double x, double y, double z, float closeVolume, float closePitch,
-                          float distantVolume, float distantPitch) {}
 }

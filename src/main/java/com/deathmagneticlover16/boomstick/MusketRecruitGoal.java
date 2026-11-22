@@ -92,7 +92,7 @@ final class MusketRecruitGoal extends Goal {
             markActive(musket);
             recruit.stopUsingItem();
             if (actionTicks == 0) {
-                if (shotDelayTicks < 0) shotDelayTicks = recruit.getRandom().nextInt(6);
+                if (shotDelayTicks < 0) shotDelayTicks = recruit.getRandom().nextInt(2);
                 if (shotDelayTicks-- > 0) return;
                 shotDelayTicks = -1;
                 actionTicks = 8;

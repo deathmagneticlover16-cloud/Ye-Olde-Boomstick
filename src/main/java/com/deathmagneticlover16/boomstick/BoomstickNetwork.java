@@ -117,7 +117,7 @@ public final class BoomstickNetwork {
         private static void handle(GunshotPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
             NetworkEvent.Context context = contextSupplier.get();
             context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
-                    () -> () -> ClientGunshotSounds.enqueue(packet.x, packet.y, packet.z,
+                    () -> () -> ClientGunshotSounds.play(packet.x, packet.y, packet.z,
                             packet.closeVolume, packet.closePitch, packet.distantVolume, packet.distantPitch)));
             context.setPacketHandled(true);
         }
