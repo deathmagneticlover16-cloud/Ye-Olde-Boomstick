@@ -15,7 +15,7 @@ A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
 
 ## Recruits compatibility
 
-Players and Recruits crossbowmen hold an armed musket in the true two-handed charged-crossbow pose. A dedicated empty/fired aiming transform keeps the barrel parallel to the actual look and crosshair direction. Recruits switch to it for an existing target or strategic-fire position, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
+Players and Recruits crossbowmen hold an armed musket in the true two-handed charged-crossbow pose, using the forward-facing empty/fired model while aiming. Recruits switch to it for an existing target or strategic-fire position, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
 
 Recruits is an optional dependency. Ye Olde Boomstick also runs on its own.
 
