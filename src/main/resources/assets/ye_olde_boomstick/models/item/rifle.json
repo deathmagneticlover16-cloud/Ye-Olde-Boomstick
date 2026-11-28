@@ -1,0 +1,9 @@
+{
+  "parent": "ye_olde_boomstick:item/rifle_fired",
+  "overrides": [
+    {"predicate": {"ye_olde_boomstick:armed": 1.0}, "model": "ye_olde_boomstick:item/rifle_loaded"},
+    {"predicate": {"ye_olde_boomstick:reloading": 1.0}, "model": "ye_olde_boomstick:item/rifle_loaded"},
+    {"predicate": {"ye_olde_boomstick:aiming": 1.0}, "model": "ye_olde_boomstick:item/rifle_loaded"},
+    {"predicate": {"ye_olde_boomstick:shouldered": 1.0}, "model": "ye_olde_boomstick:item/rifle_shoulder"}
+  ]
+}

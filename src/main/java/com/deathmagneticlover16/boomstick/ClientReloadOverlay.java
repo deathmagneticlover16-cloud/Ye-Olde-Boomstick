@@ -28,7 +28,7 @@ public final class ClientReloadOverlay {
         if (player == null) return;
 
         ItemStack stack = player.getUseItem();
-        if (!stack.is(BoomstickMod.MUSKET.get())) return;
+        if (!(stack.getItem() instanceof MusketItem)) return;
         float progress = MusketItem.getReloadProgress(stack, player.level());
         if (progress < 0.0F) return;
 

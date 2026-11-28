@@ -31,8 +31,9 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public final class MusketItem extends CrossbowItem {
+public class MusketItem extends CrossbowItem {
     private static final String ARMED = "Armed";
     private static final String LEGACY_LOADED = "Loaded";
     private static final String RELOADING = "Reloading";
@@ -42,12 +43,28 @@ public final class MusketItem extends CrossbowItem {
     private static final String REPORT_AT = "ReportAt";
     private static final String FIRE_AT = "FireAt";
     private static final int IGNITION_TICKS = 8;
-    private static final int RELOAD_DURATION_TICKS = 300;
-    private static final int RELOAD_STAGE_TICKS = 60;
     private final Multimap<Attribute, AttributeModifier> attributes;
+    private final int reloadDurationTicks;
+    private final int reloadStageTicks;
+    private final float inaccuracy;
+    private final float projectileDamage;
+    private final Supplier<SoundEvent> closeReport;
+    private final Supplier<SoundEvent> distantReport;
 
     public MusketItem(Properties properties) {
+        this(properties, 300, 10.0F, 24.0F,
+                () -> BoomstickMod.MUSKET_FIRE_CLOSE.get(), () -> BoomstickMod.MUSKET_FIRE_DISTANT.get());
+    }
+
+    public MusketItem(Properties properties, int reloadDurationTicks, float inaccuracy, float projectileDamage,
+                      Supplier<SoundEvent> closeReport, Supplier<SoundEvent> distantReport) {
         super(properties);
+        this.reloadDurationTicks = reloadDurationTicks;
+        this.reloadStageTicks = reloadDurationTicks / 5;
+        this.inaccuracy = inaccuracy;
+        this.projectileDamage = projectileDamage;
+        this.closeReport = closeReport;
+        this.distantReport = distantReport;
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Bayonet damage", 5.0D, AttributeModifier.Operation.ADDITION));
         builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Bayonet speed", -2.6D, AttributeModifier.Operation.ADDITION));
@@ -80,10 +97,10 @@ public final class MusketItem extends CrossbowItem {
             stack.getOrCreateTag().putBoolean("Shouldered", false);
             if (!stack.getOrCreateTag().getBoolean(RELOADING)) {
                 int savedProgress = Mth.clamp(stack.getOrCreateTag().getInt(RELOAD_PROGRESS), 0,
-                        RELOAD_DURATION_TICKS - RELOAD_STAGE_TICKS);
+                        reloadDurationTicks - reloadStageTicks);
                 stack.getOrCreateTag().putBoolean(RELOADING, true);
                 stack.getOrCreateTag().putLong(RELOAD_AT,
-                        level.getGameTime() + RELOAD_DURATION_TICKS - savedProgress);
+                        level.getGameTime() + reloadDurationTicks - savedProgress);
                 BoomstickNetwork.startReloadSound(player);
             }
         }
@@ -132,20 +149,20 @@ public final class MusketItem extends CrossbowItem {
         if (stack.getOrCreateTag().contains(REPORT_AT)
                 && level.getGameTime() >= stack.getOrCreateTag().getLong(REPORT_AT)) {
             stack.getOrCreateTag().remove(REPORT_AT);
-            playReport(level, user);
+            playConfiguredReport(level, user);
         }
         if (level.getGameTime() < stack.getOrCreateTag().getLong(FIRE_AT)) return;
         stack.getOrCreateTag().putBoolean(FIRING, false);
         stack.getOrCreateTag().remove(REPORT_AT);
         stack.getOrCreateTag().remove(FIRE_AT);
         setArmed(stack, false);
-        fire(level, user);
+        fireConfigured(level, user, user.getLookAngle());
         if (user instanceof ServerPlayer player) player.awardStat(Stats.ITEM_USED.get(this));
     }
 
     public static void beginFiring(ServerPlayer player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!stack.is(BoomstickMod.MUSKET.get()) || !isArmed(stack)
+        if (!(stack.getItem() instanceof MusketItem) || !isArmed(stack)
                 || stack.getOrCreateTag().getBoolean(FIRING)
                 || stack.getOrCreateTag().getBoolean(RELOADING)) return;
         stack.getOrCreateTag().putBoolean("Shouldered", false);
@@ -157,9 +174,11 @@ public final class MusketItem extends CrossbowItem {
     }
 
     private static void pauseReload(ItemStack stack, long gameTime) {
+        MusketItem weapon = firearm(stack);
+        if (weapon == null) return;
         int progress = currentReloadTicks(stack, gameTime);
-        int stageStart = Mth.clamp((progress / RELOAD_STAGE_TICKS) * RELOAD_STAGE_TICKS,
-                0, RELOAD_DURATION_TICKS - RELOAD_STAGE_TICKS);
+        int stageStart = Mth.clamp((progress / weapon.reloadStageTicks) * weapon.reloadStageTicks,
+                0, weapon.reloadDurationTicks - weapon.reloadStageTicks);
         stack.getOrCreateTag().putInt(RELOAD_PROGRESS, stageStart);
         stack.getOrCreateTag().remove(RELOADING);
         stack.getOrCreateTag().remove(RELOAD_AT);
@@ -172,15 +191,19 @@ public final class MusketItem extends CrossbowItem {
     }
 
     private static int currentReloadTicks(ItemStack stack, long gameTime) {
+        MusketItem weapon = firearm(stack);
+        if (weapon == null) return 0;
         int saved = stack.getOrCreateTag().getInt(RELOAD_PROGRESS);
         if (!stack.getOrCreateTag().getBoolean(RELOADING)) return saved;
         long remaining = Math.max(0L, stack.getOrCreateTag().getLong(RELOAD_AT) - gameTime);
-        return Mth.clamp(RELOAD_DURATION_TICKS - (int) remaining, saved, RELOAD_DURATION_TICKS);
+        return Mth.clamp(weapon.reloadDurationTicks - (int) remaining, saved, weapon.reloadDurationTicks);
     }
 
     public static float getReloadProgress(ItemStack stack, Level level) {
         if (!stack.hasTag() || !stack.getTag().getBoolean(RELOADING)) return -1.0F;
-        return currentReloadTicks(stack, level.getGameTime()) / (float) RELOAD_DURATION_TICKS;
+        MusketItem weapon = firearm(stack);
+        return weapon == null ? -1.0F
+                : currentReloadTicks(stack, level.getGameTime()) / (float) weapon.reloadDurationTicks;
     }
 
     @Override public int getUseDuration(ItemStack stack) { return 72000; }
@@ -217,16 +240,21 @@ public final class MusketItem extends CrossbowItem {
     }
 
     public static void fire(ServerLevel level, LivingEntity shooter) {
-        Vec3 look = shooter.getLookAngle();
-        fire(level, shooter, look);
+        fire(level, shooter, shooter.getLookAngle());
     }
 
     public static void fire(ServerLevel level, LivingEntity shooter, Vec3 direction) {
+        MusketItem weapon = heldFirearm(shooter);
+        if (weapon != null) weapon.fireConfigured(level, shooter, direction);
+    }
+
+    private void fireConfigured(ServerLevel level, LivingEntity shooter, Vec3 direction) {
         MusketBall ball = new MusketBall(level, shooter);
+        ball.setDamage(projectileDamage);
         Vec3 normalizedDirection = direction.normalize();
         Vec3 muzzle = muzzlePosition(shooter, normalizedDirection);
         ball.setPos(muzzle);
-        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 7.0F, 10.0F);
+        ball.shoot(normalizedDirection.x, normalizedDirection.y, normalizedDirection.z, 7.0F, inaccuracy);
         level.addFreshEntity(ball);
         level.gameEvent(shooter, GameEvent.PROJECTILE_SHOOT, shooter.position());
         SmokeEffects.spawn(level, muzzle, normalizedDirection);
@@ -242,6 +270,11 @@ public final class MusketItem extends CrossbowItem {
     }
 
     public static void playReport(ServerLevel level, LivingEntity shooter) {
+        MusketItem weapon = heldFirearm(shooter);
+        if (weapon != null) weapon.playConfiguredReport(level, shooter);
+    }
+
+    private void playConfiguredReport(ServerLevel level, LivingEntity shooter) {
         float closePitch = 0.85F + level.random.nextFloat() * 0.30F;
         float distantPitch = 0.85F + level.random.nextFloat() * 0.30F;
         for (ServerPlayer listener : level.players()) {
@@ -252,8 +285,21 @@ public final class MusketItem extends CrossbowItem {
             float distantVolume = crossfade * 2.25F;
             if (distance > 40.0D) distantVolume *= (float) (1.0D - (distance - 40.0D) / 120.0D);
             BoomstickNetwork.playGunshot(listener, shooter.position(), closeVolume, closePitch,
-                    distantVolume, distantPitch);
+                    distantVolume, distantPitch, closeReport.get(), distantReport.get());
         }
+    }
+
+    int getReloadDurationTicks() {
+        return reloadDurationTicks;
+    }
+
+    private static MusketItem firearm(ItemStack stack) {
+        return stack.getItem() instanceof MusketItem weapon ? weapon : null;
+    }
+
+    private static MusketItem heldFirearm(LivingEntity entity) {
+        MusketItem mainHand = firearm(entity.getMainHandItem());
+        return mainHand != null ? mainHand : firearm(entity.getOffhandItem());
     }
 
     public static void playActionSound(ServerLevel level, LivingEntity source, SoundEvent sound, float volume) {

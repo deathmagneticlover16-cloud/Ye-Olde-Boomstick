@@ -1,13 +1,14 @@
 # Ye Olde Boomstick
 
-A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
+A Forge 1.20.1 musket and rifle mod focused on readable, semi-arcade battlefield combat.
 
 ## Gameplay
 
-- Right click with an armed musket to fire after its ignition cue and a subtle recoil shake.
-- Hold right click with an empty musket for 15 seconds to reload. The vanilla horse-jump meter replaces the XP bar and changes through five red-to-green stages. Releasing or unequipping pauses at the beginning of the current stage and stops the sound. Reloading consumes no ammunition.
+- Right click with an armed firearm to fire after its ignition cue and a subtle recoil shake.
+- Hold right click with an empty firearm to reload. The musket takes 15 seconds and the rifle takes 45 seconds. The vanilla horse-jump meter replaces the XP bar and changes through five red-to-green stages. Releasing or unequipping pauses at the beginning of the current stage and stops the sound. Reloading consumes no ammunition.
 - A completed reload enters the armed stage and plays an audible confirmation. The musket stays armed until the next right click fires it.
 - Musket balls deal 24 damage, travel at seven blocks per tick, and use 10 inaccuracy. Recruits below five armor are guaranteed to take lethal damage from a standard full-health hit.
+- Rifles use 1 inaccuracy and deal 30 damage, enough to kill a full-health target in full iron armor while leaving stronger armor meaningful.
 - Musket balls play one of eleven positional whizz sounds when passing within four blocks of a player. Each projectile can whizz once per listener.
 - Block impacts are non-destructive but throw seven particles from the struck block and play a short, pitched version of that block's break sound.
 - The bayonet gives the musket 6 total melee damage.
@@ -17,7 +18,7 @@ A Forge 1.20.1 musket mod focused on readable, semi-arcade battlefield combat.
 
 ## Recruits compatibility
 
-Players and Recruits crossbowmen hold an armed musket in the true two-handed charged-crossbow pose, using the forward-facing empty/fired model while aiming. Recruits switch to it for an existing target or strategic-fire position, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
+Players and Recruits crossbowmen hold an armed firearm in the true two-handed charged-crossbow pose. Armed muskets and rifles use their cocked loaded models while aiming; fired and shoulder states use their matching supplied models. Recruits switch to either firearm for an existing target or strategic-fire position, reload without ammunition, bayonet enemies within two blocks while empty, and shoulder the weapon after 2.5 seconds without an action.
 
 Recruits is an optional dependency. Ye Olde Boomstick also runs on its own.
 

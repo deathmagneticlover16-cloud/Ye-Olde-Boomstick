@@ -19,10 +19,10 @@ public final class ClientInputEvents {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        InteractionHand hand = player.getMainHandItem().is(BoomstickMod.MUSKET.get())
+        InteractionHand hand = player.getMainHandItem().getItem() instanceof MusketItem
                 ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
         ItemStack musket = player.getItemInHand(hand);
-        if (!musket.is(BoomstickMod.MUSKET.get()) || !MusketItem.isArmed(musket)) return;
+        if (!(musket.getItem() instanceof MusketItem) || !MusketItem.isArmed(musket)) return;
 
         BoomstickNetwork.requestFire(hand);
         event.setSwingHand(false);

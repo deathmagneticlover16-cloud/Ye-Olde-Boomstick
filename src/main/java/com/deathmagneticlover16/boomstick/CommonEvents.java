@@ -33,7 +33,7 @@ public final class CommonEvents {
     @SubscribeEvent
     public static void preventCreativeMusketBlockBreaking(PlayerInteractEvent.LeftClickBlock event) {
         if (event.getEntity().getAbilities().instabuild
-                && event.getEntity().getMainHandItem().is(BoomstickMod.MUSKET.get())) {
+                && event.getEntity().getMainHandItem().getItem() instanceof MusketItem) {
             event.setCanceled(true);
         }
     }

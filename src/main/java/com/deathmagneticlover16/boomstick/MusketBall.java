@@ -4,6 +4,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public final class MusketBall extends ThrowableItemProjectile {
     private static final double WHIZZ_RADIUS = 4.0D;
     private final Set<UUID> whizzedPlayers = new HashSet<>();
+    private float impactDamage = 24.0F;
 
     public MusketBall(EntityType<? extends MusketBall> type, Level level) {
         super(type, level);
@@ -45,6 +47,22 @@ public final class MusketBall extends ThrowableItemProjectile {
     @Override
     protected float getGravity() {
         return 0.01F;
+    }
+
+    void setDamage(float damage) {
+        this.impactDamage = damage;
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putFloat("ImpactDamage", impactDamage);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.contains("ImpactDamage")) impactDamage = tag.getFloat("ImpactDamage");
     }
 
     @Override
@@ -82,7 +100,7 @@ public final class MusketBall extends ThrowableItemProjectile {
         super.onHitEntity(result);
         if (!level().isClientSide) {
             if (result.getEntity() instanceof ServerPlayer player) whizzedPlayers.add(player.getUUID());
-            float damage = 24.0F;
+            float damage = impactDamage;
             if (result.getEntity() instanceof LivingEntity target) {
                 var entityId = ForgeRegistries.ENTITY_TYPES.getKey(target.getType());
                 if (entityId != null && entityId.getNamespace().equals("recruits") && target.getArmorValue() < 5) {

@@ -17,6 +17,24 @@
       "ye_olde_boomstick:musket_shot_distant_4"
     ]
   },
+  "rifle_fire_close": {
+    "subtitle": "subtitles.ye_olde_boomstick.rifle_fire",
+    "sounds": [
+      "ye_olde_boomstick:rifle_shot_1",
+      "ye_olde_boomstick:rifle_shot_2",
+      "ye_olde_boomstick:rifle_shot_3",
+      "ye_olde_boomstick:rifle_shot_4"
+    ]
+  },
+  "rifle_fire_distant": {
+    "subtitle": "subtitles.ye_olde_boomstick.rifle_fire",
+    "sounds": [
+      "ye_olde_boomstick:rifle_shot_distant_1",
+      "ye_olde_boomstick:rifle_shot_distant_2",
+      "ye_olde_boomstick:rifle_shot_distant_3",
+      "ye_olde_boomstick:rifle_shot_distant_4"
+    ]
+  },
   "musket_reload": {
     "subtitle": "subtitles.ye_olde_boomstick.musket_reload",
     "sounds": [{"name": "ye_olde_boomstick:musket_reload", "stream": true}]

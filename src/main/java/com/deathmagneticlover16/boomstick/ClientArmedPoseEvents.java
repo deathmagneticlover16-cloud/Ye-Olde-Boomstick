@@ -22,7 +22,7 @@ public final class ClientArmedPoseEvents {
 
         ItemStack stack = event.getEntity().getMainHandItem();
         boolean shouldered = stack.hasTag() && stack.getTag().getBoolean("Shouldered");
-        if (!stack.is(BoomstickMod.MUSKET.get()) || !MusketItem.isArmed(stack)
+        if (!(stack.getItem() instanceof MusketItem) || !MusketItem.isArmed(stack)
                 || MusketItem.isReloading(stack) || shouldered
                 || !(event.getRenderer().getModel() instanceof HumanoidModel<?> model)) return;
 

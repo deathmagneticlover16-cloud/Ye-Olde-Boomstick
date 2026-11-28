@@ -27,12 +27,17 @@ public final class BoomstickMod {
     public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, MOD_ID);
 
     public static final RegistryObject<Item> MUSKET = ITEMS.register("musket", () -> new MusketItem(new Item.Properties().stacksTo(1)));
+    public static final RegistryObject<Item> RIFLE = ITEMS.register("rifle", () -> new MusketItem(
+            new Item.Properties().stacksTo(1), 900, 1.0F, 30.0F,
+            () -> BoomstickMod.RIFLE_FIRE_CLOSE.get(), () -> BoomstickMod.RIFLE_FIRE_DISTANT.get()));
     public static final RegistryObject<Item> MUSKET_BALL = ITEMS.register("musket_ball", () -> new Item(new Item.Properties()));
     public static final RegistryObject<EntityType<MusketBall>> MUSKET_BALL_ENTITY = ENTITIES.register("musket_ball",
             () -> EntityType.Builder.<MusketBall>of(MusketBall::new, MobCategory.MISC)
                     .sized(0.0625F, 0.0625F).clientTrackingRange(96).updateInterval(1).build(id("musket_ball").toString()));
     public static final RegistryObject<SoundEvent> MUSKET_FIRE_CLOSE = sound("musket_fire_close");
     public static final RegistryObject<SoundEvent> MUSKET_FIRE_DISTANT = sound("musket_fire_distant");
+    public static final RegistryObject<SoundEvent> RIFLE_FIRE_CLOSE = sound("rifle_fire_close");
+    public static final RegistryObject<SoundEvent> RIFLE_FIRE_DISTANT = sound("rifle_fire_distant");
     public static final RegistryObject<SoundEvent> MUSKET_RELOAD = sound("musket_reload");
     public static final RegistryObject<SoundEvent> MUSKET_ARMED = sound("musket_armed");
     public static final RegistryObject<SoundEvent> MUSKET_WHIZZ = sound("musket_whizz");
@@ -60,6 +65,7 @@ public final class BoomstickMod {
     private void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(MUSKET);
+            event.accept(RIFLE);
             event.accept(MUSKET_BALL);
         }
     }

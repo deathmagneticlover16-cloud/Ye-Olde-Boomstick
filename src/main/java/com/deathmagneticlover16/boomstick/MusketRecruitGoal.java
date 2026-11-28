@@ -33,10 +33,10 @@ final class MusketRecruitGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (recruit.getMainHandItem().is(BoomstickMod.MUSKET.get())) return true;
+        if (recruit.getMainHandItem().getItem() instanceof MusketItem) return true;
         LivingEntity target = recruit.getTarget();
         if ((target != null && target.isAlive()) || strategicAimPosition() != null) switchToMusket();
-        return recruit.getMainHandItem().is(BoomstickMod.MUSKET.get());
+        return recruit.getMainHandItem().getItem() instanceof MusketItem;
     }
 
     @Override
@@ -123,7 +123,9 @@ final class MusketRecruitGoal extends Goal {
 
     private long reloadDeadline(ItemStack musket) {
         if (!musket.getOrCreateTag().contains("RecruitReloadAt")) {
-            musket.getOrCreateTag().putLong("RecruitReloadAt", recruit.level().getGameTime() + 300L);
+            MusketItem weapon = (MusketItem) musket.getItem();
+            musket.getOrCreateTag().putLong("RecruitReloadAt",
+                    recruit.level().getGameTime() + weapon.getReloadDurationTicks());
             BoomstickNetwork.startReloadSound(recruit);
         }
         return musket.getOrCreateTag().getLong("RecruitReloadAt");
@@ -161,7 +163,7 @@ final class MusketRecruitGoal extends Goal {
     private void switchToMusket() {
         if (switchMainHandItemMethod == null) return;
         try {
-            Predicate<ItemStack> predicate = stack -> stack.is(BoomstickMod.MUSKET.get());
+            Predicate<ItemStack> predicate = stack -> stack.getItem() instanceof MusketItem;
             switchMainHandItemMethod.invoke(recruit, predicate);
         } catch (ReflectiveOperationException ignored) {
         }

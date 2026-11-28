@@ -6,14 +6,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 
 public final class MusketReloadSoundInstance extends AbstractTickableSoundInstance {
-    private static final int DURATION_TICKS = 300;
     private final Entity source;
-    private int age;
 
     public MusketReloadSoundInstance(Entity source) {
         super(BoomstickMod.MUSKET_RELOAD.get(), SoundSource.PLAYERS, RandomSource.create());
         this.source = source;
-        this.looping = false;
+        this.looping = true;
         this.delay = 0;
         this.volume = 1.1F;
         this.pitch = 1.0F;
@@ -22,12 +20,11 @@ public final class MusketReloadSoundInstance extends AbstractTickableSoundInstan
 
     @Override
     public void tick() {
-        if (!source.isAlive() || source.isRemoved() || age >= DURATION_TICKS) {
+        if (!source.isAlive() || source.isRemoved()) {
             stop();
             ClientReloadSounds.finished(source.getId(), this);
             return;
         }
-        age++;
         updatePosition();
     }
 
