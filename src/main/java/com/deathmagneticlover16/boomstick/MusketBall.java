@@ -54,13 +54,13 @@ public final class MusketBall extends ThrowableItemProjectile {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("ImpactDamage", impactDamage);
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         if (tag.contains("ImpactDamage")) impactDamage = tag.getFloat("ImpactDamage");
     }
